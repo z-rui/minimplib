@@ -1,0 +1,70 @@
+% minimplib is similar to luamplib,
+% except that it does not allow embedded MetaPost code
+% (only external code is allowed).
+% In the figure.mp, you can say
+% beginfig(nnn) ... endfig
+% and in TeX code, use \mpfile{figure.mp} to compile the MetaPost
+% code, and then use \figure{nnn} to include that figure.
+% (The MetaPost code still gets compiled every time you compile the
+% TeX file, also the caches are disabled; so in terms of performance,
+% this implementation is not that good.  I wrote it anyway because:
+% - I dislike mixing MetaPost and TeX code in one file.
+% - luamplib makes it very hard to debug when something goes wrong.
+%   Now I can simply run the plain old mpost for debugging.
+% - luamplib uses nasty substitutions like "!!!T!!!E!!!X!!!" which
+%   look very bad to me; I have removed all the ugliness (but also
+%   loses the caches).  )
+
+\directlua{require('minimplib')}
+
+\catcode`@=11
+\ifx\newcatcodetable\undefined
+  \chardef\mp@catcode=1 % too bad! we don't have ltluatex
+\else
+  \newcatcodetable\mp@catcode
+\fi
+\savecatcodetable\mp@catcode
+\directlua{luamplib.setcatcode(\number\mp@catcode)}
+
+\ifnum\outputmode>0
+  \protected\def\mp@pdf{\pdfextension literal}
+\else % don't try :(
+  \protected\def\mp@pdf#1{\special{pdf:literal direct #1}}
+\fi
+
+\newdimen\mp@llx \newdimen\mp@lly \newdimen\mp@urx \newdimen\mp@ury
+
+{\let\newbox\relax\gdef\mp@newbox{\newbox}}
+
+\def\mp@start#1#2#3#4#5{% fig#, llx, lly, urx, ury
+  \begingroup\chardef\mp@charcode=#1
+  \mp@llx=#2bp \mp@lly=#3bp \mp@urx=#4bp \mp@ury=#5bp
+  \setbox\z@\hbox\bgroup\kern-\mp@llx\raise-\mp@lly\hbox\bgroup}
+
+\def\mp@stop{\egroup\egroup % close boxes
+  \dimen@=\mp@ury \advance\dimen@-\mp@lly % height
+  \dimen@ii=\mp@urx \advance\dimen@ii-\mp@llx % width
+  \dp\z@\z@ \ht\z@\dimen@ \wd\z@\dimen@ii
+  \expandafter\mpshipout\expandafter{\number\mp@charcode}
+  \endgroup}
+
+\def\mpshipout#1{%
+  \edef\mp@fig{\csname mp@fig#1\endcsname}%
+  \expandafter\ifx\mp@fig\relax % not allocated yet
+    \expandafter\mp@newbox\mp@fig
+  \fi
+  \global\setbox\mp@fig\box\z@}
+
+\def\mp@text#1#2#3{\begingroup
+  \setbox\z@\hbox{\font\temp=#1 at #2 \temp #3}%
+  \wd\z@\z@ \ht\z@\z@ \dp\z@\z@
+  \box\z@ \endgroup}
+
+\def\mp@box#1{\copy#1\relax}
+
+\def\mpfile#1{\begingroup
+  \directlua{luamplib.tempdata = luamplib.makeTEXboxes("input #1")}%
+  \directlua{luamplib.processwithTEXboxes(luamplib.tempdata)}\endgroup}
+\def\figure#1{\copy\csname mp@fig#1\endcsname}
+
+\catcode`@=12
