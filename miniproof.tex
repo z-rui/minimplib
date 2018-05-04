@@ -1,0 +1,7 @@
+\input minimplib
+
+\pageleftoffset=0pt \pagetopoffset=0pt
+\def\mpshipout#1{{\pagewidth\wd0 \pageheight\ht0
+  \advance\pageheight\dp0 \shipout\box0}}
+\def\doit#1 {\mpfile{#1}\end}
+\expandafter\doit
