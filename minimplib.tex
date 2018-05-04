@@ -45,8 +45,7 @@
   \dimen@=\mp@ury \advance\dimen@-\mp@lly % height
   \dimen@ii=\mp@urx \advance\dimen@ii-\mp@llx % width
   \dp\z@\z@ \ht\z@\dimen@ \wd\z@\dimen@ii
-  \expandafter\mpshipout\expandafter{\number\mp@charcode}
-  \endgroup}
+  \expandafter\mpshipout\expandafter{\number\mp@charcode}\endgroup}
 
 \def\mpshipout#1{%
   \edef\mp@fig{\csname mp@fig#1\endcsname}%
