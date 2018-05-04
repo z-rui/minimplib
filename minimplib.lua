@@ -261,11 +261,7 @@ local function convert(result, flusher)
 end
 luamplib.convert = convert
 
-local catcode = -1
-
-function luamplib.setcatcode(c)
-  catcode = c
-end
+local catcode = texget("catcodetable")
 
 local function pdf_startfigure(...)
   return texsprint(catcode, format("\\mp@start{%d}{%f}{%f}{%f}{%f}",...))
