@@ -436,7 +436,7 @@ local function domakeTEXboxes (data)
           local prescript = objects[o].prescript
           prescript = prescript and script2table(prescript)
           local id = prescript and tonumber(prescript.MPlibTeX)
-          if id and (id < 0 or not rendered[id]) then
+          if id and not rendered[id] then
             local str = id > 0 and TeXsnippets[id] or prescript.MPlibmkTEXbox
             if id < nid then nid = id end
             texsprint("\\setbox", id2box(id), "\\hbox{", str, "}")
