@@ -15,20 +15,17 @@ local info = function(...) return texio.write_nl("log", format(...)) end
 
 local stringgsub    = string.gsub
 local stringfind    = string.find
-local stringmatch   = string.match
 local tableconcat   = table.concat
 local texsprint     = tex.sprint
 local textprint     = tex.tprint
 
 local texget      = tex.get
-local texgettoks  = tex.gettoks
 local texgetbox   = tex.getbox
 
 local mplib = require ('mplib')
 local kpse  = require ('kpse')
 local lfs   = require ('lfs')
 
-local lfsattributes = lfs.attributes
 local lfsisdir      = lfs.isdir
 local lfsmkdir      = lfs.mkdir
 local lfstouch      = lfs.touch
