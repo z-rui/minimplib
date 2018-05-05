@@ -38,9 +38,6 @@ local file = file or { }
 local replacesuffix = file.replacesuffix or function(filename, suffix)
   return (stringgsub(filename,"%.[%a%d]+$","")) .. "." .. suffix
 end
-local stripsuffix = file.stripsuffix or function(filename)
-  return (stringgsub(filename,"%.[%a%d]+$",""))
-end
 
 local is_writable = file.is_writable or function(name)
   if lfsisdir(name) then
@@ -59,11 +56,6 @@ local mk_full_path = lfs.mkdirs or function(path)
     lfsmkdir(full)
   end
 end
-
-local luamplibtime = kpse.find_file("luamplib.lua")
-luamplibtime = luamplibtime and lfsattributes(luamplibtime,"modification")
-
-local currenttime = os.time()
 
 local outputdir
 if lfstouch then
