@@ -244,6 +244,9 @@ end
 
 local process = function (data,indeed,verbatim)
   local firstpass = not indeed
+  if firstpass then
+    cache_files = {} -- XXX: need to clear cache when a new file is processed
+  end
   randomseed = firstpass and math.random(65535) or randomseed
   mpx = luamplib.load(currentformat,verbatim)
   return process_indeed(mpx, data, indeed)
