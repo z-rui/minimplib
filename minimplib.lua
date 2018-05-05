@@ -180,20 +180,36 @@ end
 luamplib.finder = finder
 
 local preamble = [[
-  boolean mplib ; mplib := true ;
-  let dump = endinput ;
-  let normalfontsize = fontsize;
-  input %s ;
+boolean mplib; mplib := true;
+input %s;
+
+vardef MPlibTeX_(expr id)(text t) =
+  image ( addto currentpicture also ("#!" & decimal id) infont defaultfont
+    withprescript ("MPlibTeX=" & decimal id) t;
+    if known TEXBOX_[id]:
+      save dimen; color dimen;
+      dimen := TEXBOX_[id];
+      setbounds currentpicture to unitsquare
+        xscaled redpart dimen
+        yscaled (greenpart dimen + bluepart dimen)
+        shifted (0, -bluepart dimen)
+    fi)
+enddef;
+
+TEXBOX_id := 0;
+vardef TEX(expr t) =
+  TEXBOX_id := TEXBOX_id - 1;
+  MPlibTeX_(TEXBOX_id, withprescript "MPlibmkTEXbox="&t)
+enddef;
 ]]
 
-function luamplib.load(name,verbatim)
+function luamplib.load(name)
   local mpx = mplib.new {
     ini_version = true,
     find_file = luamplib.finder,
     math_mode = luamplib.numbersystem,
     random_seed = randomseed,
   }
-  local preamble = preamble .. (verbatim and "" or luamplib.mplibcodepreamble)
   local result
   if not mpx then
     result = { status = 99, error = "out of memory"}
@@ -242,13 +258,13 @@ local function process_indeed (mpx, data, indeed)
   return converted, result
 end
 
-local process = function (data,indeed,verbatim)
+local process = function (data,indeed)
   local firstpass = not indeed
   if firstpass then
     cache_files = {} -- XXX: need to clear cache when a new file is processed
   end
   randomseed = firstpass and math.random(65535) or randomseed
-  mpx = luamplib.load(currentformat,verbatim)
+  mpx = luamplib.load(currentformat)
   return process_indeed(mpx, data, indeed)
 end
 luamplib.process = process
@@ -382,29 +398,6 @@ local function script2table(s)
   end
   return t
 end
-
-local mplibcodepreamble = [[
-vardef MPlibTeX_(expr id)(text t) =
-  image ( addto currentpicture also ("#!" & decimal id) infont defaultfont
-    withprescript ("MPlibTeX=" & decimal id) t;
-    if known TEXBOX_[id]:
-      save dimen; color dimen;
-      dimen := TEXBOX_[id];
-      setbounds currentpicture to unitsquare
-        xscaled redpart dimen
-        yscaled (greenpart dimen + bluepart dimen)
-        shifted (0, -bluepart dimen)
-    fi)
-enddef;
-
-TEXBOX_id := 0;
-vardef TEX(expr t) =
-  TEXBOX_id := TEXBOX_id - 1;
-  MPlibTeX_(TEXBOX_id, withprescript "MPlibmkTEXbox="&t)
-enddef;
-
-]]
-luamplib.mplibcodepreamble = mplibcodepreamble
 
 local _boxid = {}
 
