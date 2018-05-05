@@ -26,13 +26,12 @@
   \protected\def\mp@pdf#1{\special{pdf:literal direct #1}}
 \fi
 
-{\let\newbox\relax\gdef\mp@newbox{\newbox}}
+% non-outer version of globbox
+\expandafter\def\expandafter\mp@globbox\expandafter{\globbox}
 
-\def \mp@locbox#1#2{\et@xchk 4 \box {% make sure there's still room
-  \advance\count274 \m@ne
-  \allocationnumber=\count274
-  \setbox\allocationnumber=\hbox{#2}%
-  \wlog{\string\mp@TEX=\string\box \the\allocationnumber \space (local)}}}
+% specialized locbox
+\def\mp@locbox#1#2{\et@xchk 4 \box {\advance\count274 \m@ne
+  \setbox\count274=\hbox{#2}}}% \count274 = e-TeX locbox alloc
 
 \newdimen\mp@llx \newdimen\mp@lly \newdimen\mp@urx \newdimen\mp@ury
 \newcount\mpcharcode
@@ -51,7 +50,7 @@
 \def\mpshipout{%
   \edef\figbox{\csname mpfig@\number\mpcharcode\endcsname}%
   \expandafter\ifx\figbox\relax % not allocated yet
-    \expandafter\mp@newbox\figbox
+    \expandafter\mp@globbox\figbox
   \fi
   \global\setbox\figbox\box\z@}
 
