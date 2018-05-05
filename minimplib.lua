@@ -20,9 +20,6 @@ local mplib = require ('mplib')
 local kpse  = require ('kpse')
 local lfs   = require ('lfs')
 
-local lfsisdir      = lfs.isdir
-local lfsmkdir      = lfs.mkdir
-local lfstouch      = lfs.touch
 local ioopen        = io.open
 
 local file = file or { }
@@ -31,7 +28,7 @@ local replacesuffix = file.replacesuffix or function(filename, suffix)
 end
 
 local is_writable = file.is_writable or function(name)
-  if lfsisdir(name) then
+  if lfs.isdir(name) then
     name = name .. "/_luam_plib_temp_file_"
     local fh = ioopen(name,"w")
     if fh then
@@ -44,21 +41,21 @@ local mk_full_path = lfs.mkdirs or function(path)
   local full = ""
   for sub in path:gmatch("(/*[^\\/]+)") do
     full = full .. sub
-    lfsmkdir(full)
+    lfs.mkdir(full)
   end
 end
 
 local outputdir
-if lfstouch then
+if lfs.touch then
   local texmfvar = kpse.expand_var('$TEXMFVAR')
   if texmfvar and texmfvar ~= "" and texmfvar ~= '$TEXMFVAR' then
     for dir in texmfvar:gmatch(os.type == "windows" and "[^;]+" or "[^:]+") do
-      if not lfsisdir(dir) then
+      if not lfs.isdir(dir) then
         mk_full_path(dir)
       end
       if is_writable(dir) then
         local cached = dir .. "/luamplib_cache"
-        lfsmkdir(cached)
+        lfs.mkdir(cached)
         outputdir = cached
         break
       end
