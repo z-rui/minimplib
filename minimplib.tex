@@ -60,8 +60,9 @@
   \box\z@ \endgroup}
 
 \def\mpfile#1{\begingroup
-  \directlua{luamplib.tempdata = luamplib.makeTEXboxes("input #1")}%
-  \directlua{luamplib.processwithTEXboxes(luamplib.tempdata)}\endgroup}
+  \directlua{luamplib.makeTEXboxes("input #1")}% first pass
+  \directlua{luamplib.processwithTEXboxes("input #1")}% second pass
+  \endgroup}
 \def\figure#1{\copy\csname mpfig@#1\endcsname}
 
 \catcode`@=12
