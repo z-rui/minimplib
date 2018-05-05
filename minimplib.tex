@@ -15,15 +15,10 @@
 %   look very bad to me; I have removed all the ugliness (but also
 %   loses the caches).  )
 
-\catcode`@=11
-\ifx\newcatcodetable\undefined
-  \chardef\mp@catcode=1 % too bad! we don't have ltluatex
-  \savecatcodetable\mp@catcode
-\else
-  \let\mp@catcode=\catcodetable@atletter
-\fi
+\input ltluatex
 
-{\catcodetable\mp@catcode \directlua{require('minimplib')}}
+\catcode`@=11
+{\catcodetable\catcodetable@atletter \directlua{require('minimplib')}}
 
 \ifnum\outputmode>0
   \protected\def\mp@pdf{\pdfextension literal}
