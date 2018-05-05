@@ -274,6 +274,14 @@ local function pdf_stopfigure()
   return texsprint(catcode, "\\mp@stop")
 end
 
+local function pdf_save()
+  return texsprint(catcode, "\\mp@pdfsave")
+end
+
+local function pdf_restore()
+  return texsprint(catcode, "\\mp@pdfrestore")
+end
+
 local function pdf_literalcode(fmt,...) -- table
   return textprint({catcode, "\\mp@pdf{"},{-2,format(fmt,...)},{"}"})
 end
@@ -442,26 +450,6 @@ local function processwithTEXboxes (data)
 end
 luamplib.processwithTEXboxes = processwithTEXboxes
 
-local pdfoutput = tonumber(texget("outputmode")) or tonumber(texget("pdfoutput"))
-local pdfmode = pdfoutput > 0
-
-local start_pdf_code, stop_pdf_code
-if pdfmode then
-  function start_pdf_code()
-    return pdf_literalcode("q")
-  end
-  function stop_pdf_code()
-    pdf_literalcode("Q")
-  end
-else
-  function start_pdf_code()
-    return texsprint("\\special{pdf:bcontent}") -- dvipdfmx
-  end
-  function stop_pdf_code()
-    return texsprint("\\special{pdf:econtent}") -- dvipdfmx
-  end
-end
-
 local function colorconverter(cr)
   local n = #cr
   if n == 4 then
@@ -500,7 +488,7 @@ local function flush(result,flusher)
           pdf_stopfigure()
         else
           pdf_startfigure(fignum,llx,lly,urx,ury)
-          start_pdf_code()
+          pdf_save()
           if objects then
             for o=1,#objects do
               local object        = objects[o]
@@ -511,23 +499,23 @@ local function flush(result,flusher)
               if objecttype == "start_bounds" or objecttype == "stop_bounds" then
                 -- skip
               elseif objecttype == "start_clip" then
-                start_pdf_code()
+                pdf_save()
                 flushnormalpath(object.path,t,false)
                 pdf_literalcode("W n")
               elseif objecttype == "stop_clip" then
-                stop_pdf_code()
+                pdf_restore()
                 miterlimit, linecap, linejoin, dashed = -1, -1, -1, false
               elseif objecttype == "text" then
                 local id = prescript and tonumber(prescript.MPlibTeX)
                 local ot = object.transform -- 3,4,5,6,1,2
-                start_pdf_code()
+                pdf_save()
                 pdf_literalcode("%f %f %f %f %f %f cm",ot[3],ot[4],ot[5],ot[6],ot[1],ot[2])
                 if id then
                   texsprint("\\copy", _boxid[id], "\\relax")
                 else
                   pdf_textfigure(object.font,object.dsize,object.text,object.width,object.height,object.depth)
                 end
-                stop_pdf_code()
+                pdf_restore()
               else
                 local ml = object.miterlimit
                 if ml and ml ~= miterlimit then
@@ -571,7 +559,7 @@ local function flush(result,flusher)
                   end
                 end
                 if transformed then
-                  start_pdf_code()
+                  pdf_save()
                 end
                 if path then
                   if transformed then
@@ -588,12 +576,12 @@ local function flush(result,flusher)
                   end
                 end
                 if transformed then
-                  stop_pdf_code()
+                  pdf_restore()
                 end
                 local path = object.htap
                 if path then
                   if transformed then
-                    start_pdf_code()
+                    pdf_save()
                   end
                   if transformed then
                     flushconcatpath(path,open)
@@ -608,13 +596,13 @@ local function flush(result,flusher)
                     pdf_literalcode("h B")
                   end
                   if transformed then
-                    stop_pdf_code()
+                    pdf_restore()
                   end
                 end
               end
             end
           end
-          stop_pdf_code()
+          pdf_restore()
           pdf_stopfigure()
         end
       end

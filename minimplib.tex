@@ -20,10 +20,14 @@
 \catcode`@=11
 {\catcodetable\catcodetable@atletter \directlua{require('minimplib')}}
 
-\ifnum\outputmode>0
+\ifnum\outputmode>0 % PDF mode
   \protected\def\mp@pdf{\pdfextension literal}
-\else % don't try :(
+  \protected\def\mp@pdfsave{\pdfextension save\relax}
+  \protected\def\mp@pdfrestore{\pdfextension restore\relax}
+\else % DVI mode
   \protected\def\mp@pdf#1{\special{pdf:literal direct #1}}
+  \protected\def\mp@pdfsave{\special{pdf:bcontent}}
+  \protected\def\mp@pdfrestore{\special{pdf:econtent}}
 \fi
 
 % non-outer version of globbox
