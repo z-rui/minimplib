@@ -220,8 +220,6 @@ function luamplib.load(name)
   return mpx, result
 end
 
-local currentformat = "plain"
-
 luamplib.reporterror = function (result)
   if not result then
     err("no result object returned")
@@ -257,6 +255,8 @@ local function process_indeed (mpx, data, indeed)
   end
   return converted, result
 end
+
+local currentformat = "plain"
 
 local process = function (data,indeed)
   local firstpass = not indeed
