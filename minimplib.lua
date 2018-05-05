@@ -14,8 +14,6 @@ local err  = function(...) return tex.error(format(...)) end
 local warn = function(...) return tex.error(format(...)) end
 local info = function(...) return texio.write_nl("log", format(...)) end
 
-local stringgsub    = string.gsub
-local stringfind    = string.find
 local tableconcat   = table.concat
 
 local mplib = require ('mplib')
@@ -29,7 +27,7 @@ local ioopen        = io.open
 
 local file = file or { }
 local replacesuffix = file.replacesuffix or function(filename, suffix)
-  return (stringgsub(filename,"%.[%a%d]+$","")) .. "." .. suffix
+  return filename:gsub("%.[%a%d]+$", "") .. "." .. suffix
 end
 
 local is_writable = file.is_writable or function(name)
@@ -210,7 +208,7 @@ luamplib.reporterror = function (result)
     err("no result object returned")
   else
     local t, e, l = result.term, result.error, result.log
-    local log = stringgsub(t or l or "no-term","^%s+","\n")
+    local log = (t or l or "no-term"):gsub("^%s+", "\n")
     if result.status > 0 then
       warn("%s",log)
       if result.status > 1 then
@@ -228,7 +226,7 @@ local function process_indeed (mpx, data, indeed)
     local log = luamplib.reporterror(result)
     if indeed and log then
       if result.fig then
-        if stringfind(log,"\n>>") then info("%s",log) end
+        if log:find("\n>>") then info("%s",log) end
         converted = luamplib.convert(result)
       else
         info("%s",log)
