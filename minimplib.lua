@@ -6,6 +6,7 @@
 luamplib          = luamplib or { }
 
 local luamplib    = luamplib
+local tex         = tex
 
 local format, abs = string.format, math.abs
 
@@ -16,11 +17,6 @@ local info = function(...) return texio.write_nl("log", format(...)) end
 local stringgsub    = string.gsub
 local stringfind    = string.find
 local tableconcat   = table.concat
-local texsprint     = tex.sprint
-local textprint     = tex.tprint
-
-local texget      = tex.get
-local texgetbox   = tex.getbox
 
 local mplib = require ('mplib')
 local kpse  = require ('kpse')
@@ -264,37 +260,37 @@ local function convert(result, flusher)
 end
 luamplib.convert = convert
 
-local catcode = texget("catcodetable")
+local catcode = tex.get("catcodetable")
 
 local function pdf_startfigure(...)
-  return texsprint(catcode, format("\\mp@start{%d}{%f}{%f}{%f}{%f}",...))
+  return tex.sprint(catcode, format("\\mp@start{%d}{%f}{%f}{%f}{%f}",...))
 end
 
 local function pdf_stopfigure()
-  return texsprint(catcode, "\\mp@stop")
+  return tex.sprint(catcode, "\\mp@stop")
 end
 
 local function pdf_save()
-  return texsprint(catcode, "\\mp@pdfsave")
+  return tex.sprint(catcode, "\\mp@pdfsave")
 end
 
 local function pdf_restore()
-  return texsprint(catcode, "\\mp@pdfrestore")
+  return tex.sprint(catcode, "\\mp@pdfrestore")
 end
 
-local function pdf_literalcode(fmt,...) -- table
-  return textprint({catcode, "\\mp@pdf{"},{-2,format(fmt,...)},{"}"})
+local function pdf_literalcode(...)
+  return tex.sprint(catcode, "\\mp@pdf{", format(...), "}")
 end
 luamplib.pdf_literalcode = pdf_literalcode
 
 local function pdf_textfigure(font,size,text,width,height,depth)
   -- BUG: char(0) is always gone
-  texsprint(catcode, "\\mp@text{")
-  texsprint(font, "}{", size, "bp}{")
+  tex.sprint(catcode, "\\mp@text{")
+  tex.sprint(font, "}{", size, "bp}{")
   for c in text:gmatch(".") do
-    texsprint("\\hbox{\\char", c:byte(), "}") -- kerning happens in metapost
+    tex.sprint("\\hbox{\\char", c:byte(), "}") -- kerning happens in metapost
   end
-  texsprint("}")
+  tex.sprint("}")
 end
 luamplib.pdf_textfigure = pdf_textfigure
 
@@ -411,8 +407,8 @@ local function domakeTEXboxes (data)
           local id = prescript and tonumber(prescript.MPlibTeX)
           if id and not _boxid[id] then
             local str = id > 0 and TeXsnippets[id] or prescript.MPlibmkTEXbox
-            texsprint(catcode, "\\mp@locbox{", id, "}{")
-            texsprint(str, "}")
+            tex.sprint(catcode, "\\mp@locbox{", id, "}{")
+            tex.sprint(str, "}")
             locbox = locbox - 1
             _boxid[id] = locbox
           end
@@ -433,7 +429,7 @@ local function processwithTEXboxes (data)
   if not data then return end
   local buf = { "color TEXBOX_[];\n" }
   for id, box in pairs(_boxid) do
-    local box = texgetbox(box)
+    local box = tex.getbox(box)
     if box then
       local line = format(
         "TEXBOX_[%i]:=(%f,%f,%f) * pt;\n",
@@ -511,7 +507,7 @@ local function flush(result,flusher)
                 pdf_save()
                 pdf_literalcode("%f %f %f %f %f %f cm",ot[3],ot[4],ot[5],ot[6],ot[1],ot[2])
                 if id then
-                  texsprint("\\copy", _boxid[id], "\\relax")
+                  tex.sprint("\\copy", _boxid[id], "\\relax")
                 else
                   pdf_textfigure(object.font,object.dsize,object.text,object.width,object.height,object.depth)
                 end
