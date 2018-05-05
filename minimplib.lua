@@ -408,25 +408,10 @@ enddef;
 ]]
 luamplib.mplibcodepreamble = mplibcodepreamble
 
-local function id2box(id)
-  if id < 0 then
-    id = #TeXsnippets - id
-  end
-  return id + 2047
-end
-
-local function box2id(id)
-  id = id - 2047
-  local n = #TeXsnippets
-  if id > n then
-    id = -(id-n)
-  end
-  return id
-end
+local _boxid = {}
 
 local function domakeTEXboxes (data)
-  local nid = 0
-  local rendered = {}
+  local locbox = tex.count[274] -- e-TeX local box allocator
   if data and data.fig then
     local figures = data.fig
     for f=1, #figures do
@@ -436,24 +421,22 @@ local function domakeTEXboxes (data)
           local prescript = objects[o].prescript
           prescript = prescript and script2table(prescript)
           local id = prescript and tonumber(prescript.MPlibTeX)
-          if id and not rendered[id] then
+          if id and not _boxid[id] then
             local str = id > 0 and TeXsnippets[id] or prescript.MPlibmkTEXbox
-            if id < nid then nid = id end
-            texsprint("\\setbox", id2box(id), "\\hbox{", str, "}")
-            rendered[id] = 1
+            texsprint(catcode, "\\mp@locbox{", id, "}{")
+            texsprint(str, "}")
+            locbox = locbox - 1
+            _boxid[id] = locbox
           end
         end
       end
     end
   end
-  TeXsnippets[0] = nid
 end
 
 local function makeTEXboxes (data)
   local _,result = process(data, false)
   domakeTEXboxes(result)
-  info("mplib: made %d btex..etex and %d TEX",
-    #TeXsnippets, -TeXsnippets[0])
   return data
 end
 luamplib.makeTEXboxes = makeTEXboxes
@@ -461,8 +444,8 @@ luamplib.makeTEXboxes = makeTEXboxes
 local function processwithTEXboxes (data)
   if not data then return end
   local buf = { "color TEXBOX_[];\n" }
-  for id = TeXsnippets[0], #TeXsnippets do
-    local box = id ~= 0 and texgetbox(id2box(id))
+  for id, box in pairs(_boxid) do
+    local box = texgetbox(box)
     if box then
       local line = format(
         "TEXBOX_[%i]:=(%f,%f,%f) * pt;\n",
@@ -560,7 +543,7 @@ local function flush(result,flusher)
                 start_pdf_code()
                 pdf_literalcode("%f %f %f %f %f %f cm",ot[3],ot[4],ot[5],ot[6],ot[1],ot[2])
                 if id then
-                  texsprint(catcode, "\\mp@box{", id2box(id), "}")
+                  texsprint("\\copy", _boxid[id], "\\relax")
                 else
                   pdf_textfigure(object.font,object.dsize,object.text,object.width,object.height,object.depth)
                 end

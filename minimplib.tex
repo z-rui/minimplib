@@ -30,6 +30,12 @@
 
 {\let\newbox\relax\gdef\mp@newbox{\newbox}}
 
+\def \mp@locbox#1#2{\et@xchk 4 \box {% make sure there's still room
+  \advance\count274 \m@ne
+  \allocationnumber=\count274
+  \setbox\allocationnumber=\hbox{#2}%
+  \wlog{\string\mp@TEX=\string\box \the\allocationnumber \space (local)}}}
+
 \def\mp@start#1#2#3#4#5{% fig#, llx, lly, urx, ury
   \begingroup\chardef\mp@charcode=#1
   \mp@llx=#2bp \mp@lly=#3bp \mp@urx=#4bp \mp@ury=#5bp
@@ -52,8 +58,6 @@
   \setbox\z@\hbox{\font\temp=#1 at #2 \temp #3}%
   \wd\z@\z@ \ht\z@\z@ \dp\z@\z@
   \box\z@ \endgroup}
-
-\def\mp@box#1{\copy#1\relax}
 
 \def\mpfile#1{\begingroup
   \directlua{luamplib.tempdata = luamplib.makeTEXboxes("input #1")}%
