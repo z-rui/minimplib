@@ -242,15 +242,10 @@ local function process_indeed (mpx, data, indeed)
   return converted, result
 end
 
-local mplibinstances = {}
 local process = function (data,indeed,verbatim)
   local firstpass = not indeed
-  local currfmt = currentformat .. (luamplib.numbersystem or "scaled")
-  currfmt = firstpass and currfmt or (currfmt.."2")
-  local mpx = mplibinstances[currfmt]
   randomseed = firstpass and math.random(65535) or randomseed
   mpx = luamplib.load(currentformat,verbatim)
-  mplibinstances[currfmt] = mpx
   return process_indeed(mpx, data, indeed)
 end
 luamplib.process = process
