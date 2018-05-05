@@ -280,10 +280,9 @@ luamplib.pdf_literalcode = pdf_literalcode
 
 local function pdf_textfigure(font,size,text,width,height,depth)
   -- BUG: char(0) is always gone
-  tex.sprint(catcode, "\\mp@text{")
-  tex.sprint(font, "}{", size, "bp}{")
-  for c in text:gmatch(".") do
-    tex.sprint("\\hbox{\\char", c:byte(), "}") -- kerning happens in metapost
+  tex.sprint(catcode, "\\mp@text{", font, "}{", size, "bp}{")
+  for i = 1, #text do
+    tex.sprint("\\hbox{\\char", text:byte(i, i), "}") -- kerning happens in metapost
   end
   tex.sprint("}")
 end
