@@ -39,14 +39,14 @@
   \dimen@=\mp@ury \advance\dimen@-\mp@lly % height
   \dimen@ii=\mp@urx \advance\dimen@ii-\mp@llx % width
   \dp\z@\z@ \ht\z@\dimen@ \wd\z@\dimen@ii
-  \expandafter\mpshipout\expandafter{\number\mp@charcode}\endgroup}
+  \mpshipout\endgroup}
 
-\def\mpshipout#1{%
-  \edef\mp@fig{\csname mp@fig#1\endcsname}%
-  \expandafter\ifx\mp@fig\relax % not allocated yet
-    \expandafter\mp@newbox\mp@fig
+\def\mpshipout{%
+  \edef\figbox{\csname mpfig@\number\mp@charcode\endcsname}%
+  \expandafter\ifx\figbox\relax % not allocated yet
+    \expandafter\mp@newbox\figbox
   \fi
-  \global\setbox\mp@fig\box\z@}
+  \global\setbox\figbox\box\z@}
 
 \def\mp@text#1#2#3{\begingroup
   \setbox\z@\hbox{\font\temp=#1 at #2 \temp #3}%
@@ -58,6 +58,6 @@
 \def\mpfile#1{\begingroup
   \directlua{luamplib.tempdata = luamplib.makeTEXboxes("input #1")}%
   \directlua{luamplib.processwithTEXboxes(luamplib.tempdata)}\endgroup}
-\def\figure#1{\copy\csname mp@fig#1\endcsname}
+\def\figure#1{\copy\csname mpfig@#1\endcsname}
 
 \catcode`@=12
